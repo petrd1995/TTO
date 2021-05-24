@@ -4,7 +4,11 @@ import plots
 import os
 import pandas as pd
 import create_truss as ct
-# import emailnotify
+
+"""
+This program contains class Truss, which contains several methods used to create and 
+solve truss topology optimization problems.
+"""
 
 class Truss:
 
