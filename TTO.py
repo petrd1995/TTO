@@ -7,7 +7,8 @@ import create_truss as ct
 
 """
     This program contains class Truss, which contains several methods used to create and 
-    solve basic truss topology optimization problems in 2D and 3D.     
+    solve basic truss topology optimization problems in 2D and 3D.
+    Created by Petr David and Tomáš Mareš.
 """
 
 class Truss:
