@@ -64,3 +64,17 @@
             the first column contains the bar's number (label), second column is the number (label)
             of starting node, the third column the number (label) of ending node
         **comb** - helper used to create unique combinations
+        **epsilon** - initial difference between two consecutive designs
+            (must be initially set as bigger than variable self.kon
+            afterwards get recomputed automatically)
+        **maxit** - maximum number of iterations 
+        **rmax** - maximum radius of bars (further info README)
+        **rB** - number of rows of array all_nodes ~ final number of nodes
+        **cB** - number of columns of array all_nodes ~ problem dimension (2D, 3D)
+        **iteration** - the current iteration number
+        **hist_A** - array containing areas of all iterations
+        **hist_epsilon** - array containing all previous epsilons
+        **u** - array of displacements
+        **n** - array of bar's inner forces
+        **res** - array containing results, first column contains bar areas, and further columns are as in variable bars
+        **nonzero_res** - same as res, but only for non-zero bar's
