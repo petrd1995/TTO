@@ -4,12 +4,35 @@ import plots
 import os
 import pandas as pd
 import create_truss as ct
-# import emailnotify
+
+"""
+    This program contains class Truss, which contains several methods used to create and 
+    solve basic truss topology optimization problems in 2D and 3D.     
+"""
 
 class Truss:
 
     def __init__(self, name, x0, y0, z0, nx, ny, nz, bc, F, E, r0, Vol0, ratio, Ro, kon):
-
+        '''
+            Initialization of class instance with variables defining the particular problem.
+            The variables are as follows (for further info see README.md):
+            
+            name - name of the problem (for saving purposes)
+            x0 - length of the design domain in x direction
+            y0 - length of the design domain in y direction
+            z0 - length of the design domain in z direction
+            nx - number of nodes in x direction
+            ny - number of nodes in y direction
+            nz - number of nodes in z direction
+            bc - vector(np.array) containing boundary conditions, which are explained by 
+            F - vector(np.array) containing forces, similar to bcs:
+            E - Young's modulus E of the material (MPa)
+            r0 - initial radius of all bars (mm)
+            Vol0 - particular volume from which optimal design is to be found
+            ratio - ratio of volume of final design to initial Vol0, that is ratio = Vol/Vol0
+            R0 - density of the material (kg/mm^3) for dynamic problems
+            kon - konvergence criteria
+        '''
         self.name = name
         self.x0 = x0
         self.y0 = y0
@@ -33,7 +56,14 @@ class Truss:
                 self.Vol0 = self.x0 * self.y0 
 
     def create_grid(self):
-
+        '''
+            A sort of 'grid' creation from defined dimensions and number of nodes
+            by means of numpy's linspace method.
+            Variables here defined are:
+                num_nodes - total number of nodes
+                all_nodes -  contains info about individual nodes and their coordinates
+                get_node - helper variable for creating nodes with unique coordinates
+        '''
         self.x = np.linspace(0, self.x0, self.nx)
         self.y = np.linspace(0, self.y0, self.ny)
         self.z = np.linspace(0, self.z0, self.nz)
@@ -52,13 +82,50 @@ class Truss:
             self.all_nodes[i] = el
 
     def add_one_node(self, coords):
-
+        '''
+            Method to add node to the existing grid by passing the node's
+            coordinates.
+        '''
         # coords musi byt numpy array
         self.all_nodes = np.block([[self.all_nodes], [coords]])
         self.num_nodes = len(self.all_nodes)
 
     def plot(self, plot_type):
+        '''
+            Method for calling plot functions from the plots.py module.
+            The plots are called as all other methods, that is if we have
+            instance 'example', we can plot the initial grid, as well as
+            optionally the connecting bars by calling:
+            
+                example.plot('grid')
 
+            where we previously had to run the following methods:
+                example.create_grid()
+                example.create_bars()
+                example.vec_len()
+            
+            to plot boundary conditions and forces
+            (for e.g. verification purposes, that we created the correct problem)
+            we call
+                
+                example.plot('bcs')
+
+            to plot the resulting structure we call
+
+                example.plot('res')
+            
+            where we previously had to run the following methods:
+                example.create_grid()
+                example.create_bars()
+                example.vec_len()
+                example.opt()
+
+            to plot convergence we simply call:
+            
+                example.plot('conv')
+            
+            which has the same dependecies as plotting 'res'
+        '''
         if plot_type == 'grid':
             plots.plot_grid(self.all_nodes, self.bars)
 
@@ -72,18 +139,34 @@ class Truss:
             plots.plot_conv(self.iteration, self.hist_epsilon)
 
     def node_coords(self, node_num, **kwargs):
-
+        '''
+            Method used to return coordinates of wanted node by calling the node
+            by its number
+        '''
         if 'show' in kwargs:
             print(f'the coordinates for node {node_num} are: {self.all_nodes[node_num]}')
         return self.all_nodes[node_num]
 
     def rem_node(self, node_num):
-
+        '''
+            Method used to remove particular node(s) which is(are)
+            deleted according to the inputed node number(s) - 
+            their labels
+        '''
         self.all_nodes = np.delete(self.all_nodes, node_num, axis=0)
         self.num_nodes = len(self.all_nodes)
 
     def create_bars(self):
-
+        '''
+            Method which creates bars from unique combinations of 
+            individual nodes. This creates All unique combinations,
+            as such overlapping bars are present(but can be removed later).
+            Variables defined here are:
+                num_bars - total number of bars
+                node_counter - helper variable used to label individual bars
+                bars - vector containing info about all bars (see README)
+                comb - helper used to create unique combinations
+        '''
         self.num_bars = int(self.num_nodes * (self.num_nodes - 1) / 2)
         self.node_counter = np.arange(self.num_nodes)
         self.bars = np.empty((self.num_bars, 3), dtype=int)
@@ -93,13 +176,20 @@ class Truss:
             self.bars[q,]= int(q), *i
 
     def rem_bars(self, bar_num):
-
+        '''
+            Method used to remove particular bars. Input is(are) bar(s) number(s).
+        '''
         self.bars = np.delete(self.bars, bar_num, axis=0)
         self.num_bars = len(self.bars)
         self.bars.T[0] = np.arange(self.num_bars)
 
     def rem_long_bars(self, lenm):
-        '''remove bars of prescribed length multiple of length of diagonal bar'''
+        '''
+            Remove bars of prescribed length multiple of length of diagonal bar
+            of the smallest possible cell inside grid. For example if you set
+            lenm = 1.1, then you remove all long bars and thus are left with
+            a sort of cube-like lattice.
+        '''
 
         a = []
         if self.z0:
@@ -114,7 +204,10 @@ class Truss:
         self.len = np.delete(self.len, a, axis=0)
 
     def rem_long_bars_length(self, length):
-        '''remove bars of prescribed length multiple of length of diagonal bar'''
+        '''
+            Similar to method rem_long_bars, but here the input is 
+            a particular length, where longer bars than this are removed.
+        '''
 
         a = []
         for i in range(self.num_bars):
@@ -125,7 +218,17 @@ class Truss:
         self.len = np.delete(self.len, a, axis=0)
 
     def vec_len(self):
-
+        '''
+            Method for computing directional unit vectors and lengths
+            of all bars in the ground structure(base truss).
+            Variables defined here are:
+                len - vector holding lengths of all bars
+                vec - vector containing directional info about all bars,
+                    every row corresponds to one bar's directional
+                    unit vector's components x, y, (z). As with len
+                    vector, the row number corresponds to the particular 
+                    bar number (label)
+        '''
         self.len = np.zeros((self.num_bars, 1))
         if self.z0:
             self.vec = np.zeros((self.num_bars, 3))
@@ -142,7 +245,11 @@ class Truss:
                 self.vec[bar[0], 2] = ((end - start) / self.len[bar[0]])[2]
 
     def matK(self):
-
+        '''
+            Method which creates the stiffness matrix K by performing
+            the so called assembly operation (mapping of local bar's
+            stiffness to the global frame of reference).
+        '''
         self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
 
         for i in range(self.num_bars):
@@ -160,7 +267,10 @@ class Truss:
             self.K[slc2:slc2end, slc1:slc1end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
 
     def forces(self):
-
+        '''
+            Function mapping forces and their components
+            to corresponding degrees of freedom
+        '''
         self.f = np.zeros((self.rB * self.cB, 1))
         for i in range(len(self.F)):
             slc = self.cB * int(self.F[i][0])
@@ -170,7 +280,10 @@ class Truss:
                 self.f[slc + 2] = self.F[i][3]
 
     def boundary(self):
-
+        '''
+            Function which assings boundary conditions by modifying
+            the global stiffness matrix K. 
+        '''
         for i in range(len(self.bc)):
             slc = self.cB * int(self.bc[i, 0])
             if self.bc[i, 1]:
@@ -188,7 +301,12 @@ class Truss:
                     self.K[slc + 2, slc + 2] = 1
 
     def zerocrosssection(self):
-
+        '''
+            Function which finds bars, whose cross-section
+            got throughout optimization too small, and removes them
+            entirely to prevent singularities. 
+            (This may effect the final design!)
+        '''
         p1 = np.diag(self.K)
         p1 = np.array(p1)
 
@@ -199,7 +317,24 @@ class Truss:
         self.K = self.K + np.diag(p1)
 
     def opt(self):
-
+        '''
+            The optimization itself.
+            In every iteration, a sort of finite element method computation 
+            takes place after which bar areas are updated.
+            Variables here defined are:
+                epsilon - initial difference between two consecutive designs
+                    (must be initially set as bigger than variable self.kon
+                    afterwards get recomputed automatically)
+                maxit - maximum number of iterations 
+                rmax - maximum radius of bars (further info README)
+                rB - number of rows of array all_nodes ~ final number of nodes
+                cB - number of columns of array all_nodes ~ problem dimension (2D, 3D)
+                iteration - the current iteration number
+                hist_A - array containing areas of all iterations
+                hist_epsilon - array containing all previous epsilons
+                u - array of displacements
+                n - array of bar's inner forces
+        '''
         epsilon = 100
         maxit = 2000
         rmax = 0.5 * np.min([self.x0 / self.nx, self.y0 / self.ny, self.z0 / self.nz])
@@ -209,18 +344,10 @@ class Truss:
         self.forces()
 
         self.Vol = self.ratio * self.Vol0
-
         self.iteration = 0
-
         self.hist_A = self.Avec
-        '''Proměnná ukládající průřezy ve všech iteracích'''
-
         self.hist_epsilon = []
-        '''Proměnná ukládající rozdíl mezi průřezy prutů dvou po sobě jdoucích iteracích'''
 
-
-        # cf = []
-        # cfcurrent = 0
         while epsilon > self.kon:
             self.iteration += 1
             # tvorba matice K
@@ -231,21 +358,19 @@ class Truss:
             self.zerocrosssection()
 
             self.u = np.linalg.inv(self.K) @ self.f
-            '''Vektor posuvů'''
 
             self.n = np.zeros((self.num_bars, 1))
-            '''Vektor vnitřních sil'''
 
-            # cfit = 0
-            # počítání "lepšího" odhadu pomocí Lagrangeovy metody
+            # computing 'better' set of areas by Lagrange's method
             for i in range(self.num_bars):
                 slc2 = self.cB * self.bars[i][2]
                 slc1 = self.cB * self.bars[i][1]
                 self.n[i] = self.E * self.Avec[i] * float(self.vec[i] @ (self.u[slc2:slc2 + self.cB] - self.u[slc1:slc1 + self.cB])) / self.len[i]
             Afrak = (self.n ** 2) / (2 * self.E)
             Acurrent = (self.Vol * Afrak ** 0.5) / float(Afrak.T ** 0.5 @ self.len.reshape((self.num_bars, 1)))
-            # odstranění prutů s příliš malým průřezem a zajištění maximálního možného průřezu
-            # if self.iteration > 10:
+
+            # delete small bars and set maximum possible area? if not just comment the 
+            # whole following for loop
             for i in range(len(Acurrent)):
                 radius = np.sqrt(Acurrent[i]/np.pi)
                 if radius < 1:
@@ -253,44 +378,38 @@ class Truss:
                 elif radius > rmax:
                     Acurrent[i] = rmax**2*np.pi
 
-            # epsilon = float(np.abs(cfcurrent-cf[-1])/cf[-1])*1000
-            # cfcurrent = cf[-1]
-
             # computing epsilon (for convergence - difference between norms of two consecutive vectors of bar Areas)
             epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))
             # another way of computing epsilon
             # epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))/np.linalg.norm(self.Avec.reshape((self.num_bars, 1)))
 
-
-
             print(f"it: {self.iteration}, cfdiff = {epsilon}")
             self.Avec = Acurrent
-            # ukončení smyčky v případě nekonvergence
+
+            # ending loop in case of non-convergence or slow convergence
             if self.iteration == maxit:
                 epsilon = 0
                 print("Maximum number of iterations reached")
 
-            # ukládání průřezů z konkrétní iterace do do matice
+            # saving areas from current iteration
             self.hist_A = np.column_stack((self.hist_A, self.Avec))
-            # ukládání odchylky z dané iterace
+            # saving current epsilon
             self.hist_epsilon.append(epsilon)
 
         print(np.dot(self.len.T,np.around(Acurrent, decimals=1))/self.Vol0, self.Vol)
-        # ukládání výsledků
+        # saving results - saving bar areas and info about said bars by stacking
+        # areas of all bars in first column and next to that the array self.bars
         self.res = np.column_stack((np.around(np.sqrt(Acurrent/np.pi), decimals=1), self.bars))
-        # print(self.res)
+        # like self.res but now only saving non-zero bars
         self.nonzero_res = np.empty((np.count_nonzero(self.res[:,0]),4))
         self.nonzero_res[:,] = self.res[np.nonzero(self.res[:,0]),:]
-        # self.nonzero_len = np.empty_like(nonzero_res)
-
-
-        # self.u = np.linalg.inv(self.K) @ self.f[:,2]
-        # for i in range(18):
-        #     print(i)
-        #     print(self.u[(1344+i)*3:(1345+i)*3])
 
     def out(self):
-
+        '''
+            Function for saving the results into csv's. A folder of same name as the name
+            inputed into instance initiation is created and into that folder the results are
+            saved in csv format.
+        '''
         def write(array, name, arrname):
             pd.DataFrame(array).to_csv(os.path.join(name, arrname + '.csv'), header=None, index=None)
 
@@ -306,14 +425,20 @@ class Truss:
         return f'Truss({self.x0}, {self.y0}, {self.z0}, {self.nx}, {self.ny}, {self.nz})'
 
     def default_setup(self):
-
+        '''
+            Function which contains methods which are necessary to run every problem.
+            It is just here for convenience purposes. (orderof the functions in which 
+            they are called matters!)
+        '''
         self.create_grid()
         self.create_bars()
         self.vec_len()
         # self.rem_long_bars_length(14)
 
 def kostka_run():
-
+    '''
+        Particular example along with a more 'difficult' setup
+    '''
     x0 = 240
     y0 = 240
     z0 = 240
@@ -366,9 +491,12 @@ def kostka_run():
     # kostka.plot('bcs')
 
 def default_run(example):
-
+    '''
+        Function for running individual examples. Uncomment as necessary(order 
+        of the functions in which they are called matters!).
+    '''
     example.default_setup()
-    example.opt()
+    # example.opt()
     # example.plot('bcs')
     # example.plot('grid')
     # example.plot('res')
@@ -384,9 +512,10 @@ def default_run(example):
 # benchmark = Truss('convergence', 100, 100, 100, 10, 9, 2, np.array([[1, 1, 1, 1], [3, 1, 1, 1], [5, 1, 1, 1],[7, 1, 1, 1], [9, 1, 1, 1], [11, 1, 1, 1],
 #     [13, 1, 1, 1], [15, 1, 1, 1], [17, 1, 1, 1]]), np.array([[171, 0, -1000, 0]]), 2.1e5, 10, 0.1, 10000, 1)
 
-# benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 100, 0.1, 100, 1)
-
-# default_run(benchmark)
-
 if __name__ == "__main__":
-    kostka_run()
+    '''
+        I do not usually run this program itself, but create a different one, where i just
+        call methods from this file, but here is an example anyways.
+    '''
+    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
+    default_run(benchmark)
