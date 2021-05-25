@@ -3,7 +3,6 @@ import itertools
 import plots
 import os
 import pandas as pd
-import create_truss as ct
 
 """
     This program contains class Truss, which contains several methods used to create and 
