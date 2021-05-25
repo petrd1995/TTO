@@ -1,4 +1,4 @@
-    #Truss topology optimization
+    # Truss topology optimization
     Programs in this repo contain functions used to create and solve problems in truss topology optimization.
     
     The core program is TTO.py, where the class Truss is defined along with its various methods.
@@ -14,7 +14,7 @@
             benchmark.opt()
 
         
-    #Variables used:
+    # Variables used:
         **name** - name of the problem (for saving purposes)
         **x0** - length of the design domain in x direction (mm)
         **y0** - length of the design domain in y direction (mm)
