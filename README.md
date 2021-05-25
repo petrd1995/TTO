@@ -2,15 +2,23 @@
     Programs in this repo contain functions used to create and solve problems in truss topology optimization.
     
     The core program is TTO.py, where the class Truss is defined along with its various methods.
+    ...
 
+    *example of problem creation:*
+        benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
 
-    #Initialization of class instance with variables defining the particular problem.
-        The variables are as follows:
+        to run the problem we have to call some methods from the class:
+            benchmark.create_grid()
+            benchmark.create_bars()
+            benchmark.vec_len()
+            benchmark.opt()
+
         
+    #Variables used:
         **name** - name of the problem (for saving purposes)
-        **x0** - length of the design domain in x direction
-        **y0** - length of the design domain in y direction
-        **z0** - length of the design domain in z direction
+        **x0** - length of the design domain in x direction (mm)
+        **y0** - length of the design domain in y direction (mm)
+        **z0** - length of the design domain in z direction (mm)
         **nx** - number of nodes in x direction
         **ny** - number of nodes in y direction
         **nz** - number of nodes in z direction
@@ -27,7 +35,7 @@
             is constrained or not - 1 means constrained, 0 means free. Node 0 is therefore
             constrained in both x and y, whereas node 3 is only constrained in x, and 
             free in y. For 3D problems it is needed to add one more column for z direction.
-        **F** - vector(np.array) containing forces, similar to bcs:
+        **F** - vector(np.array) containing forces (N), similar to bcs:
 
             F = [[2, 0, -1000, 0],[4, 10, -1000, 20]]
             
@@ -46,15 +54,13 @@
         **kon** - konvergence criteria, which is later defined as difference of two consecutive
             design of areas of individual bars. kon = 1 means that when only improvement
             of one percent is achieved, the optimization loop ends
-
-    *example of problem creation:*
-        benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
-
-        to run the problem we have to call some methods from the class:
-            benchmark.create_grid()
-            benchmark.create_bars()
-            benchmark.vec_len()
-            benchmark.opt()
-
-        
-        
+        **num_nodes** - total number of nodes 
+        **all_nodes** -  contains info about individual nodes and their coordinates, that means it
+            is a vector, where every row corresponds to coordinates of particular node
+        **get_node** - helper variable for creating nodes with unique coordinates
+        **num_bars** - total number of bars
+        **node_counter** - helper variable used to label individual bars
+        **bars** - vector containing info about all bars. Each row corresponds to one bar, where
+            the first column contains the bar's number (label), second column is the number (label)
+            of starting node, the third column the number (label) of ending node
+        **comb** - helper used to create unique combinations

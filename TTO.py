@@ -60,7 +60,8 @@ class Truss:
             by means of numpy's linspace method.
             Variables here defined are:
                 num_nodes - total number of nodes
-                all_nodes -  
+                all_nodes -  contains info about individual nodes and their coordinates
+                get_node - helper variable for creating nodes with unique coordinates
         '''
         self.x = np.linspace(0, self.x0, self.nx)
         self.y = np.linspace(0, self.y0, self.ny)
@@ -80,13 +81,50 @@ class Truss:
             self.all_nodes[i] = el
 
     def add_one_node(self, coords):
-
+        '''
+            Method to add node to the existing grid by passing the node's
+            coordinates.
+        '''
         # coords musi byt numpy array
         self.all_nodes = np.block([[self.all_nodes], [coords]])
         self.num_nodes = len(self.all_nodes)
 
     def plot(self, plot_type):
+        '''
+            Method for calling plot functions from the plots.py module.
+            The plots are called as all other methods, that is if we have
+            instance 'example', we can plot the initial grid, as well as
+            optionally the connecting bars by calling:
+            
+                example.plot('grid')
 
+            where we previously had to run the following methods:
+                example.create_grid()
+                example.create_bars()
+                example.vec_len()
+            
+            to plot boundary conditions and forces
+            (for e.g. verification purposes, that we created the correct problem)
+            we call
+                
+                example.plot('bcs')
+
+            to plot the resulting structure we call
+
+                example.plot('res')
+            
+            where we previously had to run the following methods:
+                example.create_grid()
+                example.create_bars()
+                example.vec_len()
+                example.opt()
+
+            to plot convergence we simply call:
+            
+                example.plot('conv')
+            
+            which has the same dependecies as plotting 'res'
+        '''
         if plot_type == 'grid':
             plots.plot_grid(self.all_nodes, self.bars)
 
@@ -100,18 +138,34 @@ class Truss:
             plots.plot_conv(self.iteration, self.hist_epsilon)
 
     def node_coords(self, node_num, **kwargs):
-
+        '''
+            Method used to return coordinates of wanted node by calling the node
+            by its number
+        '''
         if 'show' in kwargs:
             print(f'the coordinates for node {node_num} are: {self.all_nodes[node_num]}')
         return self.all_nodes[node_num]
 
     def rem_node(self, node_num):
-
+        '''
+            Method used to remove particular node(s) which are
+            deleted according to the inputed node number(s) - 
+            their labels
+        '''
         self.all_nodes = np.delete(self.all_nodes, node_num, axis=0)
         self.num_nodes = len(self.all_nodes)
 
     def create_bars(self):
-
+        '''
+            Method which creates bars from unique combinations of 
+            individual nodes. This creates All unique combinations,
+            as such overlapping bars are present(but can be removed later).
+            Variables defined here are:
+                num_bars - total number of bars
+                node_counter - helper variable used to label individual bars
+                bars - vector containing info about all bars (see README)
+                comb - helper used to create unique combinations
+        '''
         self.num_bars = int(self.num_nodes * (self.num_nodes - 1) / 2)
         self.node_counter = np.arange(self.num_nodes)
         self.bars = np.empty((self.num_bars, 3), dtype=int)
@@ -396,7 +450,7 @@ def kostka_run():
 def default_run(example):
 
     example.default_setup()
-    example.opt()
+    # example.opt()
     # example.plot('bcs')
     # example.plot('grid')
     # example.plot('res')
