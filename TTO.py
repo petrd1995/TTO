@@ -435,9 +435,11 @@ class Truss:
         self.vec_len()
         # self.rem_long_bars_length(14)
 
-def kostka_run():
+def cube_run():
     '''
-        Particular example along with a more 'difficult' setup
+        Particular example along with a more 'difficult' setup. This can give you
+        idea how the program is run..
+        Easier example is shown at the end of the file.
     '''
     x0 = 240
     y0 = 240
@@ -463,32 +465,32 @@ def kostka_run():
     bcs = ct.createBCs(bcnode_start, bcnode_end, 3)
     f = ct.createForces(fnode_start, after_nodes, 3, f_array)
 
-    kostka = Truss('kostka2403', x0, y0, z0, nx, ny, nz, bcs, f, E, A0, ratio, Ro, kon)
+    cube = Truss('cube2403', x0, y0, z0, nx, ny, nz, bcs, f, E, A0, ratio, Ro, kon)
 
-    kostka.create_grid()
+    cube.create_grid()
 
-    a = (kostka.x0 + 20)
-    b = (kostka.y0 + 20)
-    c = (kostka.z0 + 20)
+    a = (cube.x0 + 20)
+    b = (cube.y0 + 20)
+    c = (cube.z0 + 20)
 
-    kostka.add_circle(radius, 'z', bcnodes, a / 2, b / 2, 0)
-    kostka.add_circle(radius, 'x', fnodes, 0, b / 2, c / 2)
-    kostka.add_circle(radius, 'x', fnodes, a, b / 2, c / 2)
-    kostka.add_circle(radius, 'y', fnodes, a / 2, 0, c / 2)
-    kostka.add_circle(radius, 'y', fnodes, a / 2, b, c / 2)
-    kostka.add_circle(radius, 'z', fnodes, a / 2, b / 2, c)
-    kostka.after_nodes = np.shape(kostka.all_nodes)[0]
+    cube.add_circle(radius, 'z', bcnodes, a / 2, b / 2, 0)
+    cube.add_circle(radius, 'x', fnodes, 0, b / 2, c / 2)
+    cube.add_circle(radius, 'x', fnodes, a, b / 2, c / 2)
+    cube.add_circle(radius, 'y', fnodes, a / 2, 0, c / 2)
+    cube.add_circle(radius, 'y', fnodes, a / 2, b, c / 2)
+    cube.add_circle(radius, 'z', fnodes, a / 2, b / 2, c)
+    cube.after_nodes = np.shape(cube.all_nodes)[0]
 
-    kostka.create_bars()
-    kostka.vec_len()
-    kostka.rem_long_bars(1)
+    cube.create_bars()
+    cube.vec_len()
+    cube.rem_long_bars(1)
 
-    kostka.opt()
-    # kostka.out()
+    cube.opt()
+    # cube.out()
     # emailnotify.notify()
-    kostka.plot('res')
+    cube.plot('res')
 
-    # kostka.plot('bcs')
+    # cube.plot('bcs')
 
 def default_run(example):
     '''
@@ -516,6 +518,7 @@ if __name__ == "__main__":
     '''
         I do not usually run this program itself, but create a different one, where i just
         call methods from this file, but here is an example anyways.
+        This is a more easier example..
     '''
     benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
     default_run(benchmark)
