@@ -6,14 +6,33 @@ import pandas as pd
 import create_truss as ct
 
 """
-This program contains class Truss, which contains several methods used to create and 
-solve truss topology optimization problems.
+    This program contains class Truss, which contains several methods used to create and 
+    solve basic truss topology optimization problems in 2D and 3D.     
 """
 
 class Truss:
 
     def __init__(self, name, x0, y0, z0, nx, ny, nz, bc, F, E, r0, Vol0, ratio, Ro, kon):
-
+        '''
+            Initialization of class instance with variables defining the particular problem.
+            The variables are as follows (for further info see README.md):
+            
+            name - name of the problem (for saving purposes)
+            x0 - length of the design domain in x direction
+            y0 - length of the design domain in y direction
+            z0 - length of the design domain in z direction
+            nx - number of nodes in x direction
+            ny - number of nodes in y direction
+            nz - number of nodes in z direction
+            bc - vector(np.array) containing boundary conditions, which are explained by 
+            F - vector(np.array) containing forces, similar to bcs:
+            E - Young's modulus E of the material (MPa)
+            r0 - initial radius of all bars (mm)
+            Vol0 - particular volume from which optimal design is to be found
+            ratio - ratio of volume of final design to initial Vol0, that is ratio = Vol/Vol0
+            R0 - density of the material (kg/mm^3) for dynamic problems
+            kon - konvergence criteria
+        '''
         self.name = name
         self.x0 = x0
         self.y0 = y0
@@ -37,7 +56,13 @@ class Truss:
                 self.Vol0 = self.x0 * self.y0 
 
     def create_grid(self):
-
+        '''
+            A sort of 'grid' creation from defined dimensions and number of nodes
+            by means of numpy's linspace method.
+            Variables here defined are:
+                num_nodes - total number of nodes
+                all_nodes -  
+        '''
         self.x = np.linspace(0, self.x0, self.nx)
         self.y = np.linspace(0, self.y0, self.ny)
         self.z = np.linspace(0, self.z0, self.nz)
@@ -388,9 +413,6 @@ def default_run(example):
 # benchmark = Truss('convergence', 100, 100, 100, 10, 9, 2, np.array([[1, 1, 1, 1], [3, 1, 1, 1], [5, 1, 1, 1],[7, 1, 1, 1], [9, 1, 1, 1], [11, 1, 1, 1],
 #     [13, 1, 1, 1], [15, 1, 1, 1], [17, 1, 1, 1]]), np.array([[171, 0, -1000, 0]]), 2.1e5, 10, 0.1, 10000, 1)
 
-# benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 100, 0.1, 100, 1)
-
-# default_run(benchmark)
-
 if __name__ == "__main__":
-    kostka_run()
+    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
+    default_run(benchmark)
