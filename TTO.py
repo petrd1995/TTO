@@ -247,13 +247,19 @@ class Truss:
 
     def MK(self, **Mtype):
         '''
-        Mass and Stiffness matrix creation and assembly
+            Mass and Stiffness matrix creation and assembly
+
+            Due to us using frames, we need to modify creation of stiffness matrix by
+            not using standart dimensions, but number of rows and columns will be
+            equal to number of nodes times the number of degrees of freedom in each node,
+            which is for planar frame = 3 (so we have to replace *self.rB by *3)
         '''
 
-        self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
-        # self.M = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
-        lokK = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
-        # lokM = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
+
+        self.K = np.zeros((int(self.cB * 3), int(self.cB * 3)))
+        # self.M = np.zeros((int(self.cB * 3), int(self.cB * 3)))
+        lokK = np.zeros((self.num_trusses, self.cB * 3, self.cB * 3))
+        # lokM = np.zeros((self.num_trusses, self.cB * 3, self.cB * 3))
         self.r = (self.Avec/np.pi)**0.5
         I = np.pi * self.r**4/64
 
@@ -294,7 +300,7 @@ class Truss:
                 # elif 'lumped' in Mtype.values():
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 2 * np.identity(4)
 
-            # 3D TODO !!!!!!!!!
+            # 3D TODO? !!!!!!!!!
             # else:
             #     c1 = self.vec[i][0]
             #     c2 = self.vec[i][1]
@@ -349,31 +355,40 @@ class Truss:
         proměnná todelete ukládá které stupně volnosti jsou "vymazány" - pomocí ní jde tedy znovu zrekonstruovat kde jsou jaké stupně volnosti
         '''
 
-        xulozeni = self.U1[:, 1]
-        yulozeni = self.U1[:, 2]
-        todeletex = np.where(xulozeni == 1)[0]
-        todeletey = np.where(yulozeni == 1)[0]
+        xbound = self.bc[:, 1]
+        ybound = self.bc[:, 2]
+        rotbound = self.bc[:, 3]
+        todeletex = np.where(xbound == 1)[0]
+        todeletey = np.where(ybound == 1)[0]
+        todeleterot = np.where(rotbound == 1)[0]
         for en, i in enumerate(todeletex):
-            todeletex[en] = self.U1[i, 0]*self.cB
+            todeletex[en] = self.bc[i, 0]*self.cB
 
         for en, i in enumerate(todeletey):
-            todeletey[en] = self.U1[i, 0]*self.cB + 1
+            todeletey[en] = self.bc[i, 0]*self.cB + 1
 
-        if self.z0:
-            zulozeni = self.U1[:, 3]
-            todeletez = np.where(zulozeni == 1)[0]
-            for en, i in enumerate(todeletez):
-                todeletez[en] = self.U1[i, 0]*self.cB + 2
-            todelete = np.concatenate((todeletex, todeletey, todeletez))
-        else:
-            todelete = np.concatenate((todeletex, todeletey))
+        for en, i in enumerate(todeletey):
+            todeletey[en] = self.bc[i, 0]*self.cB + 2
+
+        # if self.z0:
+        #     zbound = self.bc[:, 3]
+        #     todeletez = np.where(zbound == 1)[0]
+        #     for en, i in enumerate(todeletez):
+        #         todeletez[en] = self.bc[i, 0]*self.cB + 2
+        #     todelete = np.concatenate((todeletex, todeletey, todeletez))
+        # else:
+            # todelete = np.concatenate((todeletex, todeletey))
+        
+        todelete = np.concatenate((todeletex, todeletey, todeleterot))
 
         self.Ksys = self.K
-        self.Msys = self.M
+        # self.Msys = self.M
         self.Ksys = np.delete(self.Ksys, todelete, 0)
         self.Ksys = np.delete(self.Ksys, todelete, 1)
-        self.Msys = np.delete(self.Msys, todelete, 0)
-        self.Msys = np.delete(self.Msys, todelete, 1)
+        self.Ksys = np.delete(self.Ksys, todelete, 2)
+        # self.Msys = np.delete(self.Msys, todelete, 0)
+        # self.Msys = np.delete(self.Msys, todelete, 1)
+        # self.Msys = np.delete(self.Msys, todelete, 2)
 
         # OP pro síly
         self.f = np.column_stack((np.arange(len(self.f)), self.f))
