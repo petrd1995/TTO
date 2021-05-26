@@ -1,5 +1,7 @@
 import numpy as np
 import itertools
+
+from numpy.core.numeric import zeros_like
 import plots
 import os
 import pandas as pd
@@ -254,21 +256,18 @@ class Truss:
             equal to number of nodes times the number of degrees of freedom in each node,
             which is for planar frame = 3 (so we have to replace *self.rB by *3)
         '''
-
-
-        self.K = np.zeros((int(self.cB * 3), int(self.cB * 3)))
-        # self.M = np.zeros((int(self.cB * 3), int(self.cB * 3)))
-        lokK = np.zeros((self.num_trusses, self.cB * 3, self.cB * 3))
-        # lokM = np.zeros((self.num_trusses, self.cB * 3, self.cB * 3))
+        self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
+        # self.M = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
+        lokK = np.zeros((self.num_bars, 2 * 3, 2 * 3))
+        # lokM = np.zeros((self.num_bars, 3 * self.cB, 3 * self.cB))
         self.r = (self.Avec/np.pi)**0.5
         I = np.pi * self.r**4/64
 
-        for i in range(self.num_trusses):
+        for i in range(self.num_bars):
             # 2D
             # if not self.z0:
-            c = self.vec[i][0]
-            s = self.vec[i][1]
-            T = np.array([[ c, s, 0, 0, 0, 0],
+            c,s = self.vec[i]
+            T = np.array([[   c, s, 0, 0, 0, 0],
                             [-s, c, 0, 0, 0, 0],
                             [ 0, 0, 1, 0, 0, 0],
                             [ 0, 0, 0, c, s, 0],
@@ -288,7 +287,7 @@ class Truss:
                 [0,       k32_62,   k33_66,      0,       k53_65,    k63   ],
                 [k41_14,  0,        0,        k11_44,     0,         0     ],
                 [0,       k52,      k53_65,      0,       k22_55,    k53_65],
-                [0,       k32_62,   k63,         0,       k53_65,    k33_66]]) @ T
+                [0,       k32_62,   k63,         0,       k53_65,    k33_66]], dtype=object) @ T
 
                 # if 'consistent' in Mtype.values():
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 6 * np.array([
@@ -326,20 +325,22 @@ class Truss:
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 2 * np.identity(6)
 
             # Assembly of Stiffness and Mass matrices
-            slc1 = self.trusses[i, 1]*self.cB
-            slc2 = self.trusses[i, 1]*self.cB+self.cB
-            slc3 = self.trusses[i, 2]*self.cB
-            slc4 = self.trusses[i, 2]*self.cB+self.cB
+            slc1 = self.bars[i, 1]*self.cB
+            slc2 = self.bars[i, 1]*self.cB+self.cB
+            slc3 = self.bars[i, 2]*self.cB
+            slc4 = self.bars[i, 2]*self.cB+self.cB
 
             self.K[slc1:slc2, slc1:slc2] = self.K[slc1:slc2, slc1:slc2] + lokK[i, 0:self.cB, 
             0:self.cB]
+            K1 = self.K[slc1:slc2, slc1:slc2]
+            K2 = lokK[i, 0:self.cB, 0:self.cB]
 
             self.K[slc1:slc2, slc3:slc4] = self.K[slc1:slc2, slc3:slc4] + lokK[i, 0:self.cB, self.cB:self.cB+self.cB]
 
             self.K[slc3:slc4, slc1:slc2] = self.K[slc3:slc4, slc1:slc2] + lokK[i, self.cB:self.cB+self.cB, 0:self.cB]
 
             self.K[slc3:slc4, slc3:slc4] = self.K[slc3:slc4, slc3:slc4] + lokK[i, self.cB:self.cB+self.cB, self.cB:self.cB+self.cB]
-
+            
             # self.M[slc1:slc2, slc1:slc2] = self.M[slc1:slc2, slc1:slc2] + lokM[i, 0:self.cB, 0:self.cB]
 
             # self.M[slc1:slc2, slc3:slc4] = self.M[slc1:slc2, slc3:slc4] + lokM[i, 0:self.cB, self.cB:self.cB+self.cB]
@@ -469,7 +470,7 @@ class Truss:
         maxit = 2000
         rmax = 0.5 * np.min([self.x0 / self.nx, self.y0 / self.ny, self.z0 / self.nz])
 
-        self.rB, self.cB = np.shape(self.all_nodes)
+        # self.rB, self.cB = np.shape(self.all_nodes)
         self.Avec = np.ones_like(self.len) * self.A0
         self.forces()
 
