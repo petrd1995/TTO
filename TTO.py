@@ -349,50 +349,50 @@ class Truss:
 
             # self.M[slc3:slc4, slc3:slc4] = self.M[slc3:slc4, slc3:slc4] + lokM[i, self.cB:self.cB+self.cB, self.cB:self.cB+self.cB]
 
-    def boundary(self):
-        '''
-        Okrajové podmínky
+    # def boundary(self):
+    #     '''
+    #     Okrajové podmínky
 
-        proměnná todelete ukládá které stupně volnosti jsou "vymazány" - pomocí ní jde tedy znovu zrekonstruovat kde jsou jaké stupně volnosti
-        '''
+    #     proměnná todelete ukládá které stupně volnosti jsou "vymazány" - pomocí ní jde tedy znovu zrekonstruovat kde jsou jaké stupně volnosti
+    #     '''
 
-        xbound = self.bc[:, 1]
-        ybound = self.bc[:, 2]
-        rotbound = self.bc[:, 3]
-        todeletex = np.where(xbound == 1)[0]
-        todeletey = np.where(ybound == 1)[0]
-        todeleterot = np.where(rotbound == 1)[0]
-        for en, i in enumerate(todeletex):
-            todeletex[en] = self.bc[i, 0]*self.cB
+    #     xbound = self.bc[:, 1]
+    #     ybound = self.bc[:, 2]
+    #     rotbound = self.bc[:, 3]
+    #     todeletex = np.where(xbound == 1)[0]
+    #     todeletey = np.where(ybound == 1)[0]
+    #     todeleterot = np.where(rotbound == 1)[0]
+    #     for en, i in enumerate(todeletex):
+    #         todeletex[en] = self.bc[i, 0]*self.cB
 
-        for en, i in enumerate(todeletey):
-            todeletey[en] = self.bc[i, 0]*self.cB + 1
+    #     for en, i in enumerate(todeletey):
+    #         todeletey[en] = self.bc[i, 0]*self.cB + 1
 
-        for en, i in enumerate(todeleterot):
-            todeleterot[en] = self.bc[i, 0]*self.cB + 2
+    #     for en, i in enumerate(todeleterot):
+    #         todeleterot[en] = self.bc[i, 0]*self.cB + 2
 
-        # if self.z0:
-        #     zbound = self.bc[:, 3]
-        #     todeletez = np.where(zbound == 1)[0]
-        #     for en, i in enumerate(todeletez):
-        #         todeletez[en] = self.bc[i, 0]*self.cB + 2
-        #     todelete = np.concatenate((todeletex, todeletey, todeletez))
-        # else:
-            # todelete = np.concatenate((todeletex, todeletey))
+    #     # if self.z0:
+    #     #     zbound = self.bc[:, 3]
+    #     #     todeletez = np.where(zbound == 1)[0]
+    #     #     for en, i in enumerate(todeletez):
+    #     #         todeletez[en] = self.bc[i, 0]*self.cB + 2
+    #     #     todelete = np.concatenate((todeletex, todeletey, todeletez))
+    #     # else:
+    #         # todelete = np.concatenate((todeletex, todeletey))
         
-        todelete = np.concatenate((todeletex, todeletey, todeleterot))
+    #     todelete = np.concatenate((todeletex, todeletey, todeleterot))
 
-        self.Ksys = self.K
-        # self.Msys = self.M
-        self.Ksys = np.delete(self.Ksys, todelete, 0)
-        self.Ksys = np.delete(self.Ksys, todelete, 1)
-        # self.Msys = np.delete(self.Msys, todelete, 0)
-        # self.Msys = np.delete(self.Msys, todelete, 1)
+    #     self.Ksys = self.K
+    #     # self.Msys = self.M
+    #     self.Ksys = np.delete(self.Ksys, todelete, 0)
+    #     self.Ksys = np.delete(self.Ksys, todelete, 1)
+    #     # self.Msys = np.delete(self.Msys, todelete, 0)
+    #     # self.Msys = np.delete(self.Msys, todelete, 1)
 
-        # OP pro síly
-        self.f = np.column_stack((np.arange(len(self.f)), self.f))
-        self.fsys = self.f
-        self.fsys = np.delete(self.fsys, todelete, 0)
+    #     # OP pro síly
+    #     self.f = np.column_stack((np.arange(len(self.f)), self.f))
+    #     self.fsys = self.f
+    #     self.fsys = np.delete(self.fsys, todelete, 0)
 
     def forces(self):
         '''
@@ -404,29 +404,27 @@ class Truss:
             slc = self.cB * int(self.F[i][0])
             self.f[slc] = self.F[i][1]
             self.f[slc + 1] = self.F[i][2]
-            if self.z0:
-                self.f[slc + 2] = self.F[i][3]
+            self.f[slc + 2] = self.F[i][3]
 
-    # def boundary(self):
-    #     '''
-    #         Function which assings boundary conditions by modifying
-    #         the global stiffness matrix K. 
-    #     '''
-    #     for i in range(len(self.bc)):
-    #         slc = self.cB * int(self.bc[i, 0])
-    #         if self.bc[i, 1]:
-    #             self.K[:, slc] = 0
-    #             self.K[slc, :] = 0
-    #             self.K[slc, slc] = 1
-    #         if self.bc[i, 2]:
-    #             self.K[:, slc + 1] = 0
-    #             self.K[slc + 1, :] = 0
-    #             self.K[slc + 1, slc + 1] = 1
-    #         if self.z0:
-    #             if self.bc[i, 3]:
-    #                 self.K[:, slc + 2] = 0
-    #                 self.K[slc + 2, :] = 0
-    #                 self.K[slc + 2, slc + 2] = 1
+    def boundary(self):
+        '''
+            Function which assings boundary conditions by modifying
+            the global stiffness matrix K. 
+        '''
+        for i in range(len(self.bc)):
+            slc = self.cB * int(self.bc[i, 0])
+            if self.bc[i, 1]:
+                self.K[:, slc] = 0
+                self.K[slc, :] = 0
+                self.K[slc, slc] = 1
+            if self.bc[i, 2]:
+                self.K[:, slc + 1] = 0
+                self.K[slc + 1, :] = 0
+                self.K[slc + 1, slc + 1] = 1
+            if self.bc[i, 3]:
+                self.K[:, slc + 2] = 0
+                self.K[slc + 2, :] = 0
+                self.K[slc + 2, slc + 2] = 1
 
     def zerocrosssection(self):
         '''
@@ -469,7 +467,8 @@ class Truss:
 
         # self.rB, self.cB = np.shape(self.all_nodes)
         self.Avec = np.ones_like(self.len) * self.A0
-        
+        self.cB = 3
+        self.rB = np.shape(self.all_nodes)[0]
         self.forces()
 
         self.Vol = self.ratio * self.Vol0
@@ -479,11 +478,11 @@ class Truss:
 
         while epsilon > self.kon:
             self.iteration += 1
-            # tvorba matice K
-            self.matK()
-            # zahrnutí OP
+            # stiffness matrix creation
+            self.MK()
+            # including boundary conditions
             self.boundary()
-            # zohlednění nulových průřezů
+            # checking for bars with near-zero cross-section
             self.zerocrosssection()
 
             self.u = np.linalg.inv(self.K) @ self.f
@@ -494,7 +493,10 @@ class Truss:
             for i in range(self.num_bars):
                 slc2 = self.cB * self.bars[i][2]
                 slc1 = self.cB * self.bars[i][1]
+
+                # the line below needs analytical recalculation to allow for bending moments to be included and not just inner forces from tension and compression!!!!!!!!!
                 self.n[i] = self.E * self.Avec[i] * float(self.vec[i] @ (self.u[slc2:slc2 + self.cB] - self.u[slc1:slc1 + self.cB])) / self.len[i]
+
             Afrak = (self.n ** 2) / (2 * self.E)
             Acurrent = (self.Vol * Afrak ** 0.5) / float(Afrak.T ** 0.5 @ self.len.reshape((self.num_bars, 1)))
 
