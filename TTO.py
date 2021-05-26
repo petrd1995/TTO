@@ -247,28 +247,42 @@ class Truss:
 
     def MK(self, **Mtype):
         '''
-        Tvorba matice tuhosti K a matice hmotnosti M
+        Mass and Stiffness matrix creation and assembly
         '''
 
         self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
         # self.M = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
         lokK = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
         # lokM = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
+        self.r = (self.Avec/np.pi)**0.5
+        I = np.pi * self.r**4/64
 
         for i in range(self.num_trusses):
             # 2D
-            if not self.z0:
-                c = self.vec[i][0]
-                s = self.vec[i][1]
-                T = np.array([[c, s, 0, 0],
-                              [-s, c, 0, 0],
-                              [0, 0, c, s],
-                              [0, 0, -s, c]])
-                lokK[i] = self.E * self.Avec[i] / self.len[i] * T.T @ np.array([
-                    [1, 0, -1, 0], 
-                    [0, 0, 0, 0], 
-                    [-1, 0, 1, 0], 
-                    [0, 0, 0, 0]]) @ T
+            # if not self.z0:
+            c = self.vec[i][0]
+            s = self.vec[i][1]
+            T = np.array([[ c, s, 0, 0, 0, 0],
+                            [-s, c, 0, 0, 0, 0],
+                            [ 0, 0, 1, 0, 0, 0],
+                            [ 0, 0, 0, c, s, 0],
+                            [ 0, 0, 0,-s, c, 0],
+                            [ 0, 0, 0, 0, 0, 1]])
+            k11_44 = self.Avec[i]*self.len[i]**2/I[i]
+            k41_14 = -self.Avec[i]*self.len[i]**2/I[i]
+            k22_55 = 12
+            k52 = -12
+            k32_62 = 6*self.len[i]
+            k33_66 = 4*self.len[i]**2
+            k53_65 = -6*self.len[i]
+            k63 = 2*self.len[i]**2
+            lokK[i] = self.E * I[i] / self.len[i]**3 * T.T @ np.array([
+                [k11_44,  0,        0,         k41_14,    0,         0     ],
+                [0,       k22_55,   k32_62,      0,       k52,       k32_62],
+                [0,       k32_62,   k33_66,      0,       k53_65,    k63   ],
+                [k41_14,  0,        0,        k11_44,     0,         0     ],
+                [0,       k52,      k53_65,      0,       k22_55,    k53_65],
+                [0,       k32_62,   k63,         0,       k53_65,    k33_66]]) @ T
 
                 # if 'consistent' in Mtype.values():
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 6 * np.array([
@@ -281,17 +295,17 @@ class Truss:
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 2 * np.identity(4)
 
             # 3D TODO !!!!!!!!!
-            else:
-                c1 = self.vec[i][0]
-                c2 = self.vec[i][1]
-                c3 = self.vec[i][2]
-                lokK[i] = self.E * self.Avec[i] / self.len[i] * np.array([
-                    [c1*c1, c1*c2, c1*c3, -c1*c1, -c1*c2, -c1*c3], 
-                    [c2*c1, c2*c2, c2*c3, - c2*c1, -c2*c2, -c2*c3], 
-                    [c3*c1, c3*c2, c3*c3, - c3*c1, -c3*c2, -c3*c3], 
-                    [-c1*c1, -c1*c2, -c1*c3, c1*c1,  c1*c2,  c1*c3], 
-                    [-c2*c1, -c2*c2, -c2*c3, c2*c1,  c2*c2,  c2*c3], 
-                    [-c3*c1, -c3*c2, -c3*c3,  c3*c1,  c3*c2,  c3*c3]])
+            # else:
+            #     c1 = self.vec[i][0]
+            #     c2 = self.vec[i][1]
+            #     c3 = self.vec[i][2]
+            #     lokK[i] = self.E * self.Avec[i] / self.len[i] * np.array([
+            #         [c1*c1, c1*c2, c1*c3, -c1*c1, -c1*c2, -c1*c3], 
+            #         [c2*c1, c2*c2, c2*c3, - c2*c1, -c2*c2, -c2*c3], 
+            #         [c3*c1, c3*c2, c3*c3, - c3*c1, -c3*c2, -c3*c3], 
+            #         [-c1*c1, -c1*c2, -c1*c3, c1*c1,  c1*c2,  c1*c3], 
+            #         [-c2*c1, -c2*c2, -c2*c3, c2*c1,  c2*c2,  c2*c3], 
+            #         [-c3*c1, -c3*c2, -c3*c3,  c3*c1,  c3*c2,  c3*c3]])
 
                 # if 'consistent' in Mtype.values():
                 #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 6 * np.array([
