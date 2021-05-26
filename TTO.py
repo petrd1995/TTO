@@ -245,27 +245,127 @@ class Truss:
             if self.z0:
                 self.vec[bar[0], 2] = ((end - start) / self.len[bar[0]])[2]
 
-    def matK(self):
+    def MK(self, **Mtype):
         '''
-            Method which creates the stiffness matrix K by performing
-            the so called assembly operation (mapping of local bar's
-            stiffness to the global frame of reference).
+        Tvorba matice tuhosti K a matice hmotnosti M
         '''
+
         self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
+        # self.M = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
+        lokK = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
+        # lokM = np.zeros((self.num_trusses, 2 * self.cB, 2 * self.cB))
 
-        for i in range(self.num_bars):
-            slc1 = self.cB * self.bars[i][1]
-            slc1end = slc1 + self.cB
-            slc2 = self.cB * self.bars[i][2]
-            slc2end = slc2 + self.cB
+        for i in range(self.num_trusses):
+            # 2D
+            if not self.z0:
+                c = self.vec[i][0]
+                s = self.vec[i][1]
+                T = np.array([[c, s, 0, 0],
+                              [-s, c, 0, 0],
+                              [0, 0, c, s],
+                              [0, 0, -s, c]])
+                lokK[i] = self.E * self.Avec[i] / self.len[i] * T.T @ np.array([
+                    [1, 0, -1, 0], 
+                    [0, 0, 0, 0], 
+                    [-1, 0, 1, 0], 
+                    [0, 0, 0, 0]]) @ T
 
-            self.K[slc1:slc1end, slc1:slc1end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+                # if 'consistent' in Mtype.values():
+                #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 6 * np.array([
+                #         [2, 0, 1, 0], 
+                #         [0, 2, 0, 1], 
+                #         [1, 0, 2, 0], 
+                #         [0, 1, 0, 2]])
 
-            self.K[slc2:slc2end, slc2:slc2end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+                # elif 'lumped' in Mtype.values():
+                #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 2 * np.identity(4)
 
-            self.K[slc1:slc1end, slc2:slc2end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+            # 3D TODO !!!!!!!!!
+            else:
+                c1 = self.vec[i][0]
+                c2 = self.vec[i][1]
+                c3 = self.vec[i][2]
+                lokK[i] = self.E * self.Avec[i] / self.len[i] * np.array([
+                    [c1*c1, c1*c2, c1*c3, -c1*c1, -c1*c2, -c1*c3], 
+                    [c2*c1, c2*c2, c2*c3, - c2*c1, -c2*c2, -c2*c3], 
+                    [c3*c1, c3*c2, c3*c3, - c3*c1, -c3*c2, -c3*c3], 
+                    [-c1*c1, -c1*c2, -c1*c3, c1*c1,  c1*c2,  c1*c3], 
+                    [-c2*c1, -c2*c2, -c2*c3, c2*c1,  c2*c2,  c2*c3], 
+                    [-c3*c1, -c3*c2, -c3*c3,  c3*c1,  c3*c2,  c3*c3]])
 
-            self.K[slc2:slc2end, slc1:slc1end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+                # if 'consistent' in Mtype.values():
+                #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 6 * np.array([
+                #         [2, 0, 0,  1, 0, 0], 
+                #         [0, 2, 0, 0, 1, 0], 
+                #         [0, 0, 2, 0, 0, 1], 
+                #         [1, 0, 0, 2, 0, 0], 
+                #         [0, 1, 0, 0, 2, 0], 
+                #         [0, 0, 1,  0, 0, 2]])
+
+                # elif 'lumped' in Mtype.values():
+                #     lokM[i] = self.Ro * self.Avec[i] * self.len[i] / 2 * np.identity(6)
+
+            # Assembly of Stiffness and Mass matrices
+            slc1 = self.trusses[i, 1]*self.cB
+            slc2 = self.trusses[i, 1]*self.cB+self.cB
+            slc3 = self.trusses[i, 2]*self.cB
+            slc4 = self.trusses[i, 2]*self.cB+self.cB
+
+            self.K[slc1:slc2, slc1:slc2] = self.K[slc1:slc2, slc1:slc2] + lokK[i, 0:self.cB, 
+            0:self.cB]
+
+            self.K[slc1:slc2, slc3:slc4] = self.K[slc1:slc2, slc3:slc4] + lokK[i, 0:self.cB, self.cB:self.cB+self.cB]
+
+            self.K[slc3:slc4, slc1:slc2] = self.K[slc3:slc4, slc1:slc2] + lokK[i, self.cB:self.cB+self.cB, 0:self.cB]
+
+            self.K[slc3:slc4, slc3:slc4] = self.K[slc3:slc4, slc3:slc4] + lokK[i, self.cB:self.cB+self.cB, self.cB:self.cB+self.cB]
+
+            # self.M[slc1:slc2, slc1:slc2] = self.M[slc1:slc2, slc1:slc2] + lokM[i, 0:self.cB, 0:self.cB]
+
+            # self.M[slc1:slc2, slc3:slc4] = self.M[slc1:slc2, slc3:slc4] + lokM[i, 0:self.cB, self.cB:self.cB+self.cB]
+
+            # self.M[slc3:slc4, slc1:slc2] = self.M[slc3:slc4, slc1:slc2] + lokM[i, self.cB:self.cB+self.cB, 0:self.cB]
+
+            # self.M[slc3:slc4, slc3:slc4] = self.M[slc3:slc4, slc3:slc4] + lokM[i, self.cB:self.cB+self.cB, self.cB:self.cB+self.cB]
+
+    def boundary(self):
+        '''
+        Okrajové podmínky
+
+        proměnná todelete ukládá které stupně volnosti jsou "vymazány" - pomocí ní jde tedy znovu zrekonstruovat kde jsou jaké stupně volnosti
+        '''
+
+        xulozeni = self.U1[:, 1]
+        yulozeni = self.U1[:, 2]
+        todeletex = np.where(xulozeni == 1)[0]
+        todeletey = np.where(yulozeni == 1)[0]
+        for en, i in enumerate(todeletex):
+            todeletex[en] = self.U1[i, 0]*self.cB
+
+        for en, i in enumerate(todeletey):
+            todeletey[en] = self.U1[i, 0]*self.cB + 1
+
+        if self.z0:
+            zulozeni = self.U1[:, 3]
+            todeletez = np.where(zulozeni == 1)[0]
+            for en, i in enumerate(todeletez):
+                todeletez[en] = self.U1[i, 0]*self.cB + 2
+            todelete = np.concatenate((todeletex, todeletey, todeletez))
+        else:
+            todelete = np.concatenate((todeletex, todeletey))
+
+        self.Ksys = self.K
+        self.Msys = self.M
+        self.Ksys = np.delete(self.Ksys, todelete, 0)
+        self.Ksys = np.delete(self.Ksys, todelete, 1)
+        self.Msys = np.delete(self.Msys, todelete, 0)
+        self.Msys = np.delete(self.Msys, todelete, 1)
+
+        # OP pro síly
+        self.f = np.column_stack((np.arange(len(self.f)), self.f))
+        self.fsys = self.f
+        self.fsys = np.delete(self.fsys, todelete, 0)
+
 
     def forces(self):
         '''
