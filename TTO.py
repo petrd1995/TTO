@@ -558,7 +558,7 @@ class Truss:
     def default_setup(self):
         '''
             Function which contains methods which are necessary to run every problem.
-            It is just here for convenience purposes. (orderof the functions in which 
+            It is just here for convenience purposes. (order of the functions in which 
             they are called matters!)
         '''
         self.create_grid()
