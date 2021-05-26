@@ -368,8 +368,8 @@ class Truss:
         for en, i in enumerate(todeletey):
             todeletey[en] = self.bc[i, 0]*self.cB + 1
 
-        for en, i in enumerate(todeletey):
-            todeletey[en] = self.bc[i, 0]*self.cB + 2
+        for en, i in enumerate(todeleterot):
+            todeleterot[en] = self.bc[i, 0]*self.cB + 2
 
         # if self.z0:
         #     zbound = self.bc[:, 3]
@@ -386,16 +386,13 @@ class Truss:
         # self.Msys = self.M
         self.Ksys = np.delete(self.Ksys, todelete, 0)
         self.Ksys = np.delete(self.Ksys, todelete, 1)
-        self.Ksys = np.delete(self.Ksys, todelete, 2)
         # self.Msys = np.delete(self.Msys, todelete, 0)
         # self.Msys = np.delete(self.Msys, todelete, 1)
-        # self.Msys = np.delete(self.Msys, todelete, 2)
 
         # OP pro síly
         self.f = np.column_stack((np.arange(len(self.f)), self.f))
         self.fsys = self.f
         self.fsys = np.delete(self.fsys, todelete, 0)
-
 
     def forces(self):
         '''
@@ -410,26 +407,26 @@ class Truss:
             if self.z0:
                 self.f[slc + 2] = self.F[i][3]
 
-    def boundary(self):
-        '''
-            Function which assings boundary conditions by modifying
-            the global stiffness matrix K. 
-        '''
-        for i in range(len(self.bc)):
-            slc = self.cB * int(self.bc[i, 0])
-            if self.bc[i, 1]:
-                self.K[:, slc] = 0
-                self.K[slc, :] = 0
-                self.K[slc, slc] = 1
-            if self.bc[i, 2]:
-                self.K[:, slc + 1] = 0
-                self.K[slc + 1, :] = 0
-                self.K[slc + 1, slc + 1] = 1
-            if self.z0:
-                if self.bc[i, 3]:
-                    self.K[:, slc + 2] = 0
-                    self.K[slc + 2, :] = 0
-                    self.K[slc + 2, slc + 2] = 1
+    # def boundary(self):
+    #     '''
+    #         Function which assings boundary conditions by modifying
+    #         the global stiffness matrix K. 
+    #     '''
+    #     for i in range(len(self.bc)):
+    #         slc = self.cB * int(self.bc[i, 0])
+    #         if self.bc[i, 1]:
+    #             self.K[:, slc] = 0
+    #             self.K[slc, :] = 0
+    #             self.K[slc, slc] = 1
+    #         if self.bc[i, 2]:
+    #             self.K[:, slc + 1] = 0
+    #             self.K[slc + 1, :] = 0
+    #             self.K[slc + 1, slc + 1] = 1
+    #         if self.z0:
+    #             if self.bc[i, 3]:
+    #                 self.K[:, slc + 2] = 0
+    #                 self.K[slc + 2, :] = 0
+    #                 self.K[slc + 2, slc + 2] = 1
 
     def zerocrosssection(self):
         '''
@@ -472,6 +469,7 @@ class Truss:
 
         # self.rB, self.cB = np.shape(self.all_nodes)
         self.Avec = np.ones_like(self.len) * self.A0
+        
         self.forces()
 
         self.Vol = self.ratio * self.Vol0
