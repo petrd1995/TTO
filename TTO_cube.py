@@ -4,8 +4,13 @@ import itertools
 import plots
 import os
 import pandas as pd
-import create_truss as ct
-# import emailnotify
+import create_bc_f as ct
+
+"""
+    This program contains class Truss, which contains several methods used to create and 
+    solve basic truss topology optimization problems in 2D and 3D.
+    Created by Petr David and Tomáš Mareš.
+"""
 
 class Truss:
 

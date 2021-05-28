@@ -1,5 +1,8 @@
 import numpy as np
 
+'''
+    Old function used for creating nodes on a circle for particular types of boundary conditions/loading.
+'''
 def circle(dim, plane, radius, n_points, *origin):
     theta = np.linspace(0, 2*np.pi, n_points, endpoint=False)
     ones = np.ones_like(theta)

@@ -3,10 +3,16 @@ import matplotlib.pyplot as plt
 
 
 def nodecoords(node, array):
+    '''
+        Function that returns node's coordinates, based on the inputted node number (label)
+    '''
     return array[node]
 
 
 def plot_res(res, vec, all_nodes, n):
+    '''
+        Plotting results of the optimization. Each line corresponds to one bar. If single load case is analyzed, then red color means the bar is in tension, and blue color means compression. For multiple load cases this becomes there is no distinction by color.
+    '''
     dim = np.shape(vec)[1]
     # btp - bars to plot
     btp = np.empty((np.count_nonzero(res[:, 0]), dim * 2 + 2))
@@ -51,6 +57,9 @@ def plot_res(res, vec, all_nodes, n):
 
 
 def plot_grid(nodes, bars, **plotbars):
+    '''
+        Function for plotting the grid or the so-called ground structure. Can be modified to show everything, or exclude bar plotting, node plotting etc. I use this function to look and verify the ground structure is correctly set up according to my vision. The other use is to show only node numbers and with that knowledge impose boundary conditions and loads to the corresponding nodes.
+    '''
     dim = np.shape(nodes)[1]
     bbox_props = dict(boxstyle="round,pad=0.1,rounding_size=0.2", fc="white", ec="k")
     if dim > 2:
@@ -96,6 +105,9 @@ def plot_grid(nodes, bars, **plotbars):
 
 
 def plot_bcs(bcs, f, nodes):
+    '''
+        Function that plots boundary conditions and forces, which can be used to quickly verify, that these were put into the correct nodes.
+    '''
     bcs = np.array(bcs)
     f = np.array(f)
     dim = np.shape(bcs)[1] - 1
@@ -138,12 +150,14 @@ def plot_bcs(bcs, f, nodes):
     plt.show()
 
 def plot_conv(iter, hist_eps):
+    '''
+        Function for plotting convergence of the optimization.
+    '''
+    fig, ax = plt.subplots()
+    ax.plot(range(iter), hist_eps)
+    # fig.title('Convergence')
+    ax.set_xlabel('Iteration [-]')
+    ax.set_ylabel('Epsilon [%]')
 
-        fig, ax = plt.subplots()
-        ax.plot(range(iter), hist_eps)
-        # fig.title('Convergence')
-        ax.set_xlabel('Iteration [-]')
-        ax.set_ylabel('Epsilon [%]')
-
-        plt.tight_layout()
-        plt.show()
+    plt.tight_layout()
+    plt.show()

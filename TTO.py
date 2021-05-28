@@ -3,7 +3,7 @@ import itertools
 import plots
 import os
 import pandas as pd
-import create_truss as ct
+import create_bc_f as ct
 
 """
     This program contains class Truss, which contains several methods used to create and 
@@ -428,7 +428,7 @@ class Truss:
     def default_setup(self):
         '''
             Function which contains methods which are necessary to run every problem.
-            It is just here for convenience purposes. (orderof the functions in which 
+            It is just here for convenience purposes. (order of the functions in which 
             they are called matters!)
         '''
         self.create_grid()
@@ -499,10 +499,10 @@ def default_run(example):
         of the functions in which they are called matters!).
     '''
     example.default_setup()
-    # example.opt()
-    # example.plot('bcs')
-    # example.plot('grid')
-    # example.plot('res')
+    example.opt()
+    example.plot('bcs')
+    example.plot('grid')
+    example.plot('res')
     # example.plot('conv')
     # example.out()
 

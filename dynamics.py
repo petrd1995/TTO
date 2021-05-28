@@ -4,7 +4,7 @@ import numpy as np
 
 def eigen(A, B):
     '''
-    Výpočet a seřazení vl. čísel (vl. frekvencí) a vl.tvarů od nejmenšího po největší
+        Computation and sorting of eigenvalues and eigenvectors from the smallest to the biggest
     '''
 
     eigenValues, eigenVectors = la.eig(A, B)
@@ -18,7 +18,7 @@ def eigen(A, B):
 
 def findeigenvec(neigval, eigenvecs):
     '''
-    Funkce ke hledání vl. tvaru k příslušnému zadanému vl. číslu - když chci znát vl. vektor k 1. vl. tvaru zadám 1 jako neigval a eigenvecs je matice, kde jsou seřazeny do sloupců vl. tvary, např. tak, jak vypisuje funkce eigen
+        Function for finding particular eigenvector to corresponding eigenvalue's number
     '''
 
     return eigenvecs[:, neigval]
@@ -26,7 +26,7 @@ def findeigenvec(neigval, eigenvecs):
 
 def modalmatrix(eigval, eigvecs, MassM):
     '''
-    Funkce tvoří modální matici systému. Vstupem jsou: vektor vl. čísel eigval, matice vl. vektorů eigvecs a matice hmotnosti MassM. Výstupem je modální matice, kde každý sloupec je normalizovaný vl. vektor pomocí modální transformace, příslušný dané vl. frekvenci.
+        Function that creates modal matrix of the system. Inputs are vector of eigenvalues, eigenvectors and mass matrix. Outpu is modal matrix, where each column is normalized eigenvector through modal transform.
     '''
 
     factors = np.zeros(len(eigval))
