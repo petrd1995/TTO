@@ -6,9 +6,13 @@ The core program is TTO.py, where the class Truss is defined along with its vari
 
 *example of problem creation:*
 
-    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 100, 1)
+    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 1, 1)
 
-The individual inputs for creating the instance are explained in [Variables used](#Variables_used) section.
+where the inputs are:
+
+    Truss(name, x0, y0, z0, nx, ny, nz, bc, F, E, r0, Vol0, ratio, Ro, kon)
+
+The individual inputs for creating the instance are explained in [Variables used](#Variables_used) section and in example_run() or cube_run().
 
 To run the problem we have to call some methods from the class:
 
