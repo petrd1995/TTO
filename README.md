@@ -6,13 +6,18 @@ The core program is TTO.py, where the class Truss is defined along with its vari
 
 *example of problem creation:*
 
-    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]]), np.array([[4, 0, -1000, -600]]), 2.1e5, 5, 0, 0.2, 1, 1)
+    f = np.array([[4, 0, -1000, -600]])
+    bcs = np.array([[0, 1, 1, 1], [1, 1, 1, 1],[2, 1, 1, 1], [3, 1, 1, 1]])
+
+    benchmark = Truss('benchmark', 100, 100, 100, 2, 2, 2, bcs, f, 2.1e5, 5, 0, 0.2, 1, 1)
 
 where the inputs are:
 
     Truss(name, x0, y0, z0, nx, ny, nz, bc, F, E, r0, Vol0, ratio, Ro, kon)
 
-The individual inputs for creating the instance are explained in [Variables used](#Variables_used) section and in example_run() or cube_run().
+which means that would create problem with dimensions of 100x100x100 in x, y and z directions. Number of nodes would be 2 in x, y and z. Force with components [0, -1000, -600] would be put into node 4, and boundary conditions would be imposed onto nodes 0, 1, 2, 3. Young's modulus would be = 2.1e5 MPa. The initial guess for bar radii r0 = 5, Vol0 would be set to 0, which would simply mean the design domain itself would be Vol0, so that Vol0 = x0\*y0\*z0. Ratio = 0.2, density of material = 1 and covergence criteria = 1.
+
+The individual inputs for creating the instance are further explained in [Variables used](#Variables_used) section and in example_run() or cube_run().
 
 To run the problem we have to call some methods from the class:
 
