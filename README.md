@@ -23,8 +23,77 @@ To simply run some examples use files cube_run.py and example_run.py, which are 
 ### My general workflow
 I usually create a separate file from which I call individual methods, as is the case in the two example files cube_run.py and example_run.py.
 
+First I create instance of the class Truss, which stands as the problem itself. Initially I set the force vector and boundary conditions vector as empty or e.g.:
+
+    bc = [[0,1,1]]
+    f = [[1,0,0]]
+
+where I just want to make sure the instance is created, despite having wrong bcs and forces. Then I proceed with calling individual methods to set up nodes, bars etc. with following functions:
+
+    name_of_instance.create_grid()
+    name_of_instance.create_bars()
+    name_of_instance.vec_len()
+
+after these, I can plot the grid with individual node labels, in order to find out in which nodes I want to put bcs/forces.
+
+    name_of_instance.plot('bcs')
+
+where one just has to make sure, that in plots.py the corresponding function plot_grid() has uncommented the blocks of code responsible for showing labels. If one uses large number of nodes (let's say more than 10 in each direction) the preferred way would be to simply add nodes by using the method add_one_node() as is shown in cube_run.py:
+
+    name_of_instance.create_grid()
+    name_of_instance.add_one_node(nds_to_add)
+
+note that running create_grid() before this method is necessary. The array nds_to_add should contain all desired nodes to be added, in the following way:
+
+    nds_to_add = np.array[[x1,y1,z1], 
+                          [x2,y2,z2]]
+
+where one adds nodes based on their coordinates (depending on problem dimension also z coordinate). Here are shown two nodes to be added. These are appended to the rest of the nodes and so to access the first added node (x1, y1, z1) its number(label) will be {total number of nodes + 1} but since Python counts from 0 it will be just equal to total number of nodes. Let's say I created a problem which has 8 nodes and added one node. In order to put force (e.g. of 100 N in x and 200 N in y direction) into this node I would create array f like so:
+
+    f = [[8, 100, 200]]
+
+This is thus done before creating the instance, but after doing so the add_one_node() part has to follow after the create_grid() method otherwise we would get error, that we are trying to access node number 8(9th node) but we only have 8 nodes.
+
+To check if bcs and forces were created as expected we can call:
+
+    name_of_instance.plot('bcs')
+
+If everything is set up the way we want we can finally call:
+
+    name_of_instance.opt()
+
+after which we can do:
+
+    name_of_instance.plot('res')
+
+to plot the results, or:
+
+    name_of_instance.out()
+
+to save the results into csv files in a direction of the name of the instance (the first argument to the instance creation).
+
 ## Files and their description:
 
+TTO.py - the main file containing the class Truss, which has several methods used to create and 
+    solve basic truss topology optimization problems in 2D and 3D. 
+
+TTO_cube.py - modified version of TTO.py which is more suited to solve problems with multiple load cases (experimental).
+
+plots.py - file containing functions for plotting grid, boundary conditions, results etc. Was separated from the main file for simplicity of the class Truss.
+
+example_run.py - file with simple problem setup to get an idea how to setup problems yourself.
+
+emailnotify.py - function for sending e-mails programmatically. I use this with complex problems, where there is a lot of computation time to notify me that the optimization has ended. Works only for gmail and one has to perform setup as shown in the file itself.
+
+dynamics.py - file containing functions for solving modal analysis(eigenproblems). Not included in optimization yet but TBD...
+
+cube_run.py - another example problem. This one is more complex.
+
+create_bc_f.py - file with two functions used to create arrays of bcs and forces programmatically - for larger problems with a lot of bcs and forces.
+
+circlecoords.py - older file used to create nodes on a circle. Was used for specific boundary condition shapes.
+
+testing.py - just a testing file
 
 ## <a name="Variables_used"></a>Variables used:
 

@@ -75,13 +75,13 @@ def plot_grid(nodes, bars, **plotbars):
                 [nodecoords(bars[i[0], 1], nodes)[1], nodecoords(bars[i[0], 2], nodes)[1]],
                 [nodecoords(bars[i[0], 1], nodes)[2], nodecoords(bars[i[0], 2], nodes)[2]],
                 'k', linewidth=0.8)
-        # for i, txt in enumerate(range(len(nodes))):
-        #     ax1.text(
-        #             nodes.T[0][i],
-        #             nodes.T[1][i],
-        #             nodes.T[2][i],
-        #             txt, bbox=bbox_props
-        #              )
+        for i, txt in enumerate(range(len(nodes))):
+            ax1.text(
+                    nodes.T[0][i],
+                    nodes.T[1][i],
+                    nodes.T[2][i],
+                    txt, bbox=bbox_props
+                     )
     else:
         x, y = nodes.T
         fig = plt.figure()
