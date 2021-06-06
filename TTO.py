@@ -82,6 +82,14 @@ class Truss:
         for i, el in enumerate(self.get_node):
             self.all_nodes[i] = el
 
+    def grid_from_list(self, nodes):
+        '''
+            Method used, when one wishes to create ground structure from known set of nodes
+            and wishes to evade creating linspace grid(from create_grid method) alltogether.
+        '''
+        self.num_nodes = nodes.shape[0]
+        self.all_nodes = nodes
+
     def add_one_node(self, coords):
         '''
             Method to add node to the existing grid by passing the node's
