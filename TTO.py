@@ -382,10 +382,11 @@ class Truss:
             # whole following for loop
             for i in range(len(Acurrent)):
                 radius = np.sqrt(Acurrent[i]/np.pi)
-                if radius < 1:
+                # if radius < 1:
+                if radius < 0.01*np.max(Acurrent):
                     Acurrent[i] = 0.000000001
-                elif radius > rmax:
-                    Acurrent[i] = rmax**2*np.pi
+                # elif radius > rmax:
+                #     Acurrent[i] = rmax**2*np.pi
 
             # computing epsilon (for convergence - difference between norms of two consecutive vectors of bar Areas)
             epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))
