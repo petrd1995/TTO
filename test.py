@@ -38,26 +38,30 @@ example.create_bars()
 example.vec_len()
 example.rB, example.cB = np.shape(example.all_nodes)
 example.forces()
+example.Avec = np.ones_like(example.len) * example.A0
+example.matK()
+print(example.K)
 
-def cf(x, grad):
-    example.Avec = x[:]
-    example.matK()
-    example.boundary()
-    # example.zerocrosssection()
-    example.u = np.linalg.inv(example.K) @ example.f
-    return 0.5 * example.u.T @ example.K @ example.u
+# def cf(x, grad):
+#     example.Avec = x[:]
+#     # grad[:] =  
+#     example.matK()
+#     example.boundary()
+#     # example.zerocrosssection()
+#     example.u = np.linalg.inv(example.K) @ example.f
+#     return example.u.T @ example.K @ example.u
 
 
-opt = nlopt.opt(nlopt.LN_COBYLA, example.num_bars)
-opt.set_lower_bounds(0.1*np.ones(example.num_bars))
-opt.set_upper_bounds(100*np.ones(example.num_bars))
-opt.set_min_objective(cf)
-opt.set_xtol_rel(1e-4)
-x = opt.optimize(10*np.ones(example.num_bars))
-minf = opt.last_optimum_value()
-print("optimum at ", x)
-print("minimum value = ", minf)
-print("result code = ", opt.last_optimize_result())
+# opt = nlopt.opt(nlopt.LD_MMA, example.num_bars)
+# opt.set_lower_bounds(0.1*np.ones(example.num_bars))
+# opt.set_upper_bounds(100*np.ones(example.num_bars))
+# opt.set_min_objective(cf)
+# opt.set_xtol_rel(1e-4)
+# x = opt.optimize(10*np.ones(example.num_bars))
+# minf = opt.last_optimum_value()
+# print("optimum at ", x)
+# print("minimum value = ", minf)
+# print("result code = ", opt.last_optimize_result())
 
 # example.opt()
 # example.plot('res')
@@ -94,3 +98,9 @@ print("result code = ", opt.last_optimize_result())
 # print("optimum at ", x[0], x[1])
 # print("minimum value = ", minf)
 # print("result code = ", opt.last_optimize_result())
+
+
+# a = np.ones((2,2))
+# b = np.array((a,a,a))
+# c = np.sum(b, axis = 0)
+# print(c)

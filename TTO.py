@@ -259,7 +259,7 @@ class Truss:
             the so called assembly operation (mapping of local bar's
             stiffness to the global frame of reference).
         '''
-        self.K = np.zeros((int(self.cB * self.rB), int(self.cB * self.rB)))
+        self.lokK = np.zeros((self.num_bars, int(self.cB * self.rB), int(self.cB * self.rB)))
 
         for i in range(self.num_bars):
             slc1 = self.cB * self.bars[i][1]
@@ -267,13 +267,16 @@ class Truss:
             slc2 = self.cB * self.bars[i][2]
             slc2end = slc2 + self.cB
 
-            self.K[slc1:slc1end, slc1:slc1end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+            self.lokK[i, slc1:slc1end, slc1:slc1end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
 
-            self.K[slc2:slc2end, slc2:slc2end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+            self.lokK[i, slc2:slc2end, slc2:slc2end] += np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
 
-            self.K[slc1:slc1end, slc2:slc2end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+            self.lokK[i, slc1:slc1end, slc2:slc2end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
 
-            self.K[slc2:slc2end, slc1:slc1end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+            self.lokK[i, slc2:slc2end, slc1:slc1end] = - np.outer(self.vec[i], self.vec[i]) * self.E * self.Avec[i] / self.len[i]
+        self.K = np.sum(self.lokK, axis = 0)
+
+
 
     def forces(self):
         '''
