@@ -12,7 +12,7 @@ nz = 2
 E = 2.1e5
 r0 = 5
 ratio = 0.5
-Vol0 = x0*y0*ratio
+Vol0 = 10000*ratio
 Ro = 1
 kon = 1
 bcs = np.array([[0, 1, 1], [1, 1, 1]])
@@ -89,7 +89,7 @@ def force():
             f[slc + 2] = forces[i][3]
     return f
 
-def boundary(mK, gK):
+def boundary(mK):
     for i in range(len(bcs)):
         slc = cB * int(bcs[i, 0])
         if bcs[i, 1]:
@@ -105,50 +105,45 @@ def boundary(mK, gK):
                 mK[:, slc + 2] = 0
                 mK[slc + 2, :] = 0
                 mK[slc + 2, slc + 2] = 1
-        for j in range(num_bars):
-            if bcs[i, 1]:
-                gK[j,:, slc] = 0
-                gK[j,slc, :] = 0
-                gK[j,slc, slc] = 1
-            if bcs[i, 2]:
-                gK[j,:, slc + 1] = 0
-                gK[j,slc + 1, :] = 0
-                gK[j,slc + 1, slc + 1] = 1
-            if z0:
-                if bcs[i, 3]:
-                    gK[j,:, slc + 2] = 0
-                    gK[j,slc + 2, :] = 0
-                    gK[j,slc + 2, slc + 2] = 1
-    return mK, gK
+    return mK
 
 force = force()
 
 
 
-# def cf(x, grad):
+def cf(x, grad):
 
-#     K, dKdA = maticeK(x)
-#     Kres, dKdAres = boundary(K, dKdA)
+    K, dKdA = maticeK(x)
+    Kres = boundary(K)
+    u = np.linalg.inv(Kres) @ force
+    for i in range(num_bars):
+        grad[i] = -u.T @ dKdA[i] @ u
+    cost = u.T @ Kres @ u
+    # cost = force.T @ np.linalg.inv(Kres) @ force
+    return float(cost)
 
-#     u = np.linalg.inv(Kres) @ force
-#     grad = np.array([None, None, None, None, None, None])
-#     for i in range(num_bars):
-#         grad[i] = -u.T @ dKdAres[i] @ u
-#     cost = u.T @ Kres @ u
-#     return cost
+
+def myconstraint(x, grad):
+    for i in range(num_bars):
+        grad[i] = lengths[i]
+    return float(x.T @ lengths - Vol0)
+
+opt = nlopt.opt(nlopt.LD_MMA, num_bars)
+opt.set_lower_bounds([0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001])
+opt.set_upper_bounds([10000, 10000, 10000, 10000, 10000, 10000])
+opt.set_min_objective(cf)
+opt.add_inequality_constraint(
+    lambda x, grad: myconstraint(x, grad), 1e-8)
+opt.set_xtol_rel(1e-6)
+# x = opt.optimize(10*np.ones(num_bars))
+x = opt.optimize([1, 1, 1, 1, 1, 1])
+minf = opt.last_optimum_value()
+print("optimum at ", x)
+print("minimum value = ", minf)
+print("result code = ", opt.last_optimize_result())
 
 
-# opt = nlopt.opt(nlopt.LD_MMA, num_bars)
-# opt.set_lower_bounds([0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
-# opt.set_upper_bounds([100, 100, 100, 100, 100, 100])
-# opt.set_min_objective(cf)
-# opt.set_xtol_rel(1e-4)
-# # x = opt.optimize(10*np.ones(num_bars))
-# x = opt.optimize([10, 10, 10, 10, 10, 10])
-# minf = opt.last_optimum_value()
-# print("optimum at ", x)
-# print("minimum value = ", minf)
-# print("result code = ", opt.last_optimize_result())
+
 
 
 # K, dKdA = maticeK(Avec)
@@ -160,27 +155,27 @@ force = force()
 # print(Avec.T@lengths)
 
 
-def cf(x):
+# def cf(x):
 
-    K, dKdA = maticeK(x)
-    Kres, dKdAres = boundary(K, dKdA)
-    u = np.linalg.inv(Kres) @ force
+#     K, dKdA = maticeK(x)
+#     Kres = boundary(K)
+#     u = np.linalg.inv(Kres) @ force
     
-    return float(u.T @ Kres @ u)
+#     return float(u.T @ Kres @ u)
 
 
-cons = ({'type': 'ineq', 'fun': lambda x:  x.T@lengths - Vol0, 'jac':  })
+# cons = ({'type': 'ineq', 'fun': lambda x:  x.T@lengths - Vol0})
 
-bnds = ((1,100),
-        (1, 100),
-        (1, 100),
-        (1, 100),
-        (1, 100),
-        (1, 100),)
+# bnds = ((1,100),
+#         (1, 100),
+#         (1, 100),
+#         (1, 100),
+#         (1, 100),
+#         (1, 100),)
 
-initial_guess = 10*np.ones(num_bars)
+# initial_guess = 10*np.ones(num_bars)
 
-res = minimize(cf, initial_guess, method='SLSQP', bounds=bnds,
-               constraints=cons)
+# res = minimize(cf, initial_guess, method='SLSQP', bounds=bnds,
+#                constraints=cons)
 
-print(res)
+# print(res)
