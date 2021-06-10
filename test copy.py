@@ -109,8 +109,8 @@ def boundary(mK):
 
 force = force()
 
-
-
+c_history = []
+history = []
 def cf(x, grad):
 
     K, dKdA = maticeK(x)
@@ -119,6 +119,9 @@ def cf(x, grad):
     for i in range(num_bars):
         grad[i] = -u.T @ dKdA[i] @ u
     cost = u.T @ Kres @ u
+    history.append(x)
+    c_history.append(float(cost))
+    # cost = u.T @ u
     # cost = force.T @ np.linalg.inv(Kres) @ force
     return float(cost)
 
@@ -128,20 +131,24 @@ def myconstraint(x, grad):
         grad[i] = lengths[i]
     return float(x.T @ lengths - Vol0)
 
+
+lb = 0.0001*np.ones(num_bars)
+ub = 10000*np.ones(num_bars)
+ini_x = np.ones(num_bars)
+
 opt = nlopt.opt(nlopt.LD_MMA, num_bars)
-opt.set_lower_bounds([0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001])
-opt.set_upper_bounds([10000, 10000, 10000, 10000, 10000, 10000])
+opt.set_lower_bounds(lb)
+opt.set_upper_bounds(ub)
 opt.set_min_objective(cf)
 opt.add_inequality_constraint(
     lambda x, grad: myconstraint(x, grad), 1e-8)
 opt.set_xtol_rel(1e-6)
 # x = opt.optimize(10*np.ones(num_bars))
-x = opt.optimize([1, 1, 1, 1, 1, 1])
+x = opt.optimize(ini_x)
 minf = opt.last_optimum_value()
 print("optimum at ", x)
 print("minimum value = ", minf)
 print("result code = ", opt.last_optimize_result())
-
 
 
 
