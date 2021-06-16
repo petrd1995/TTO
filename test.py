@@ -50,7 +50,7 @@ for i, el in enumerate(get_node):
 num_nodes = len(all_nodes)
 num_bars = int(num_nodes * (num_nodes - 1) / 2)
 node_counter = np.arange(num_nodes)
-bars = np.empty((num_bars, 3), dtype=int)
+bars = np.zeros((num_bars, 3), dtype=int)
 comb = itertools.combinations(node_counter, 2)
 for q, i in enumerate(comb):
     bars[q, ] = int(q), *i
@@ -62,6 +62,8 @@ def node_coords(node_num, all_nodes):
 
 lengths = np.zeros((num_bars, 1))
 vec = np.zeros((num_bars, 2))
+lenm = 1
+
 for bar in bars:
     start = node_coords(bars[bar[0], 1], all_nodes)
     end = node_coords(bars[bar[0], 2], all_nodes)
@@ -71,35 +73,56 @@ for bar in bars:
     if z0:
         vec[bar[0], 2] = ((end - start) / lengths[bar[0]])[2]
 
-def rem_bars(bar_num, barx):
-
-    barx = np.delete(barx, bar_num, axis=0)
-    num_barx = len(barx)
-    barx.T[0] = np.arange(num_barx)
-
-    return barx
-
-def rem_long_bars(lenm, vecs, lens, bar_arr):
-    a = []
+print(num_bars)
+a = []
+for i in range(num_bars):
     if z0:
         diag = np.sqrt((x0 / (nx - 1))**2 + (y0 /
                         (ny - 1))**2 + (z0 / (nz - 1))**2)
     else:
         diag = np.sqrt((x0 / (nx - 1))**2 +
                         (y0 / (ny - 1))**2)
-    for i in range(num_bars):
-        if (lens[i] > lenm * diag) or (lens[i] < 0.5 * lenm * diag):
-            a.append(i)
-    bar_arr = rem_bars(a, bar_arr)  # odstranění prutu/ů?
-    vecs = np.delete(vecs, a, axis=0)
-    lens = np.delete(lens, a, axis=0)
 
-    return vecs, lens, bar_arr
-
-
+    if lengths[bar[0]] > lenm * diag:
+        a.append(i)
+print(a)
+bars = np.delete(bars, a, axis=0)
+num_bars = len(bars)
+bars.T[0] = np.arange(num_bars)
+vec = np.delete(vec, a, axis=0)
+lengths = np.delete(lengths, a, axis=0)
 print(num_bars)
-vec, lengths, bars = rem_long_bars(1.1, vec, lengths, bars)
-print(num_bars)
+
+
+# def rem_bars(bar_num, barx):
+
+#     barx = np.delete(barx, bar_num, axis=0)
+#     num_barx = len(barx)
+#     barx.T[0] = np.arange(num_barx)
+
+#     return barx
+
+# def rem_long_bars(lenm, vecs, lens, bar_arr):
+#     a = []
+#     if z0:
+#         diag = np.sqrt((x0 / (nx - 1))**2 + (y0 /
+#                         (ny - 1))**2 + (z0 / (nz - 1))**2)
+#     else:
+#         diag = np.sqrt((x0 / (nx - 1))**2 +
+#                         (y0 / (ny - 1))**2)
+#     for i in range(num_bars):
+#         if (lens[i] > lenm * diag) or (lens[i] < 0.5 * lenm * diag):
+#             a.append(i)
+#     bar_arr = rem_bars(a, bar_arr)  # odstranění prutu/ů?
+#     vecs = np.delete(vecs, a, axis=0)
+#     lens = np.delete(lens, a, axis=0)
+
+#     return vecs, lens, bar_arr
+
+
+# print(num_bars)
+# vec, lengths, bars = rem_long_bars(1.1, vec, lengths, bars)
+# print(num_bars)
 rB, cB = np.shape(all_nodes)
 
 

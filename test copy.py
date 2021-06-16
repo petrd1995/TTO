@@ -162,27 +162,3 @@ print("result code = ", opt.last_optimize_result())
 # print(Avec.T@lengths)
 
 
-# def cf(x):
-
-#     K, dKdA = maticeK(x)
-#     Kres = boundary(K)
-#     u = np.linalg.inv(Kres) @ force
-    
-#     return float(u.T @ Kres @ u)
-
-
-# cons = ({'type': 'ineq', 'fun': lambda x:  x.T@lengths - Vol0})
-
-# bnds = ((1,100),
-#         (1, 100),
-#         (1, 100),
-#         (1, 100),
-#         (1, 100),
-#         (1, 100),)
-
-# initial_guess = 10*np.ones(num_bars)
-
-# res = minimize(cf, initial_guess, method='SLSQP', bounds=bnds,
-#                constraints=cons)
-
-# print(res)
