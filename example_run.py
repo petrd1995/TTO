@@ -13,7 +13,7 @@ import emailnotify
 x0 = 100  # length of domain in x direction [mm]
 y0 = 100  # length of domain in y direction [mm]
 z0 = 0  # length of domain in z direction [mm]
-nx = 10  # number of nodes in x direction [-]
+nx = 21  # number of nodes in x direction [-]
 ny = 9  # number of nodes in y direction [-]
 nz = 2  # number of nodes in z direction [-]
 E = 2.1e5  # Young's modulus E[MPa]
@@ -37,8 +37,8 @@ example.default_setup()
 # example.create_grid() # creates ground structure's nodes
 # example.create_bars() # creates bars connecting these nodes
 # example.vec_len() # computes lengths and directions of these bars
-example.rem_long_bars(3.1)
-# example.plot('grid')
+example.rem_long_bars(1.1)
+example.plot('grid')
 # example.plot('bcs') # plotting boundary conditions and forces
-example.opt()  # optimization
-example.plot('res')  # plotting results
+# example.opt()  # optimization
+# example.plot('res')  # plotting results

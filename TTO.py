@@ -136,7 +136,7 @@ class Truss:
             which has the same dependecies as plotting 'res'
         '''
         if plot_type == 'grid':
-            plots.plot_grid(self.all_nodes, self.bars)
+            plots.plot_grid(self.all_nodes, self.bars, plotbars=True)
 
         if plot_type == 'bcs':
             plots.plot_bcs(self.bc, self.F, self.all_nodes)
