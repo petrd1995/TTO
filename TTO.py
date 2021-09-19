@@ -346,7 +346,8 @@ class Truss:
         '''
         epsilon = 100
         maxit = 2000
-        rmax = 0.5 * np.min([self.x0 / self.nx, self.y0 / self.ny, self.z0 / self.nz])
+        # rmax = 0.5 * np.min([self.x0 / self.nx, self.y0 / self.ny, self.z0 / self.nz])
+        rmax = 10
 
         self.rB, self.cB = np.shape(self.all_nodes)
         self.Avec = np.ones_like(self.len) * self.A0
@@ -358,6 +359,7 @@ class Truss:
         self.hist_epsilon = []
 
         while epsilon > self.kon:
+        # while self.iteration < 30:
             self.iteration += 1
             # tvorba matice K
             self.matK()
@@ -388,11 +390,19 @@ class Truss:
                     Acurrent[i] = rmax**2*np.pi
 
             # computing epsilon (for convergence - difference between norms of two consecutive vectors of bar Areas)
-            epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))
+            # epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))
+            # Avec = self.Avec.reshape((self.num_bars, 1))
+            eps1 = Acurrent - self.Avec
+            # maxeps = np.max(abs(eps1))
+            id_max = np.argmax(abs(eps1))
+            maxeps = abs((Acurrent[id_max] - self.Avec[id_max])/Acurrent[id_max])
+            self.hist_epsilon.append(maxeps)
+            epsilon = maxeps*100
+
             # another way of computing epsilon
             # epsilon = np.linalg.norm(Acurrent - self.Avec.reshape((self.num_bars, 1)))/np.linalg.norm(self.Avec.reshape((self.num_bars, 1)))
 
-            print(f"it: {self.iteration}, cfdiff = {epsilon}")
+            print(f"it: {self.iteration}, epsilon = {epsilon}")
             self.Avec = Acurrent
 
             # ending loop in case of non-convergence or slow convergence
@@ -403,7 +413,8 @@ class Truss:
             # saving areas from current iteration
             self.hist_A = np.column_stack((self.hist_A, self.Avec))
             # saving current epsilon
-            self.hist_epsilon.append(epsilon)
+            # self.hist_epsilon.append(epsilon)
+        print(self.hist_epsilon)
 
         print(np.dot(self.len.T,np.around(Acurrent, decimals=1))/self.Vol0, self.Vol)
         # saving results - saving bar areas and info about said bars by stacking
@@ -412,7 +423,6 @@ class Truss:
         # like self.res but now only saving non-zero bars
         self.nonzero_res = np.empty((np.count_nonzero(self.res[:,0]),4))
         self.nonzero_res[:,] = self.res[np.nonzero(self.res[:,0]),:]
-
     def out(self):
         '''
             Function for saving the results into csv's. A folder of same name as the name
