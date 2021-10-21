@@ -325,6 +325,32 @@ class Truss:
         np.fill_diagonal(self.K, 0)
         self.K = self.K + np.diag(p1)
 
+    def comp_inertia(self, Areas):
+        '''
+            Function for computing moment of inertia of individual bar areas. The areas are assumed to be circular.
+
+            Input: areas of bars
+            Output: moments of inertia of individual bars
+        '''
+        self.J = np.pi*(2*(Areas/np.pi)**0.5)**4/64
+
+    def comp_Fcrit(self):
+        '''
+            Function for computing critical Euler buckling force of pinned-pinned column.
+
+            Input: Young's modulus of bar(s), lengths of bars
+            Output: Critical force vector for individual bars
+        '''
+        self.Fcrit = np.pi**2*self.E/self.len**2
+
+    def comp_E2(self):
+
+        self.comp_inertia()
+        self.comp_Fcrit()
+        
+        α = np.zeros
+        pass
+
     def opt(self):
         '''
             The optimization itself.
